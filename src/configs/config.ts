@@ -3,12 +3,12 @@ import dotenv from "dotenv";
 
 export class Config {
   private static instance: Config | null = null;
+
   public PG_HOST: string;
   public PG_DATABASE: string;
   public PG_USER: string;
   public PG_PASSWORD: string;
   public PG_PORT: number;
-
   public ADMIN_EMAIL: string;
   public ADMIN_PASSWORD: string;
 

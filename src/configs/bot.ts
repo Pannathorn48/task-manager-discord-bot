@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { ChatInputCommandInteraction, Client, GatewayIntentBits, REST, Routes } from 'discord.js';
+import { Client, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { MainHandler } from '@/infrastructure/handlers/MainHandler.js';
 
 export async function startBot(handler : MainHandler) {
@@ -33,25 +33,36 @@ export async function startBot(handler : MainHandler) {
   console.log('Registered all command');
 
   client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+    // Handle both chat input commands and autocomplete interactions
+    if (!interaction.isChatInputCommand() && !interaction.isAutocomplete()) return;
     
     try {
       if (!handler.handlers.has(interaction.commandName)) {
-        await interaction.reply({
-          content: 'Unknown command!',
-          ephemeral: true
-        });
+        if (interaction.isChatInputCommand()) {
+          await interaction.reply({
+            content: 'Unknown command!',
+            ephemeral: true
+          });
+        } else if (interaction.isAutocomplete()) {
+          await interaction.respond([]);
+        }
         return;
       }
       await handler.handlers.get(interaction.commandName)!.handleInteraction(interaction);
     } catch (error) {
       console.error('Error handling interaction:', error);
       
-      if (!interaction.replied && !interaction.deferred) {
+      if (interaction.isChatInputCommand() && !interaction.replied && !interaction.deferred) {
         await interaction.reply({
           content: 'An error occurred while processing your command.',
           ephemeral: true
         });
+      } else if (interaction.isAutocomplete()) {
+        try {
+          await interaction.respond([]);
+        } catch (respondError) {
+          console.error('Failed to respond to autocomplete with empty array:', respondError);
+        }
       }
     }
   });

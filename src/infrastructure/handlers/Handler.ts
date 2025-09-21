@@ -1,8 +1,8 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, AutocompleteInteraction} from "discord.js";
 
 export abstract class Handler {
     constructor() {}
     
-    abstract handleInteraction(interaction: ChatInputCommandInteraction): Promise<void>;
+    abstract handleInteraction(interaction: ChatInputCommandInteraction | AutocompleteInteraction): Promise<void>;
     abstract getSlashCommand(): any;
 }

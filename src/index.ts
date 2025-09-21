@@ -7,8 +7,7 @@ async function main() {
     try {
         var cfg : Config = Config.getInstance();
         var db : Database = await Database.initializeDatabase(cfg);
-
-        var handler : MainHandler = new MainHandler(cfg , db);
+        var handler : MainHandler = new MainHandler(db);
         
         await startBot(handler);
         console.log('Discord bot started successfully!');

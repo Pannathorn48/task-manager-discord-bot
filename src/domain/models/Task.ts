@@ -7,7 +7,7 @@ export interface Task {
   description?: string; // optional description
   status: TaskStatus;
   parentId?: string | null;
-  assigneeId?: string | null; // Discord user id
+  assigneeId?: string; // Discord user id
   createdBy: string; // Discord user id
   createdAt: number; // epoch ms
 }
