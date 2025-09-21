@@ -83,7 +83,7 @@ export class ProgressionService {
      */
     public static formatProgressionDisplay(hierarchy: TaskWithProgress[]): string {
         if (hierarchy.length === 0) {
-            return "🎯 **No tasks found** - Start by creating your first task!";
+            return "🎯 No tasks found - Start by creating your first task to track your progress!";
         }
 
         let result = "";
@@ -100,7 +100,7 @@ export class ProgressionService {
         
         // Overall progress bar with larger size
         const overallBar = this.createProgressBar(totalProgress, 20);
-        result += `📊 **OVERALL:** ${overallBar} **${totalProgress}%**\n\n`;
+        result += `📊 **Overall Progress:** ${overallBar} ${totalProgress}% complete\n\n`;
         
         // Add separator
         result += "─".repeat(40) + "\n\n";
@@ -145,13 +145,13 @@ export class ProgressionService {
         const progressBar = this.createProgressBar(progress, barLength);
         
         // Task header with beautiful formatting
-        let result = `${prefix}${connector} ${statusEmoji} **${task.name}** \`#${task.id}\`\n`;
-        result += `${prefix}${continuePrefix}${progressBar} **${progress}%**\n`;
+        let result = `${prefix}${connector} ${statusEmoji} **${task.name}** \`Task #${task.id}\`\n`;
+        result += `${prefix}${continuePrefix}${progressBar} ${progress}% completed\n`;
         
         if (task.description) {
-            result += `${prefix}${continuePrefix}*${task.description}*`;
+            result += `${prefix}${continuePrefix}${task.description}`;
             if (task.status === "closed") {
-                result += " `[CLOSED]`";
+                result += " (archived)";
             }
             result += "\n";
         }
@@ -175,45 +175,45 @@ export class ProgressionService {
     }
 
     /**
-     * Get beautiful emoji based on task status
+     * Get descriptive emoji based on task status with clear meaning
      */
     private static getStatusEmoji(status: TaskStatus): string {
         switch (status) {
             case "created":
-                return "🆕"; // New/created task - bright blue "NEW" badge
+                return "🆕"; // Newly created task awaiting action
             case "doing":
-                return "⚡"; // In progress - lightning bolt for energy/activity
+                return "⚡"; // Task currently in progress
             case "done":
-                return "🎉"; // Completed - celebration for accomplishment
+                return "🎉"; // Successfully completed task
             case "closed":
-                return "�"; // Closed - archived/boxed up
+                return "📦"; // Archived or closed task
             default:
-                return "❓"; // Unknown
+                return "❓"; // Unknown status
         }
     }
 
     /**
-     * Create a beautiful progress bar with visual appeal
+     * Create a visual progress bar that clearly shows completion status
      */
     private static createProgressBar(progress: number, length: number = 10): string {
         const filledLength = Math.round((progress / 100) * length);
         const emptyLength = length - filledLength;
         
-        // Use different characters based on progress level for visual appeal
+        // Use different characters based on progress level for better visual clarity
         let fillChar = "█";
         let emptyChar = "░";
         
-        // Add visual variety based on progress
+        // Adjust visual representation based on completion percentage
         if (progress === 100) {
-            fillChar = "█"; // Solid when complete
+            fillChar = "█"; // Solid blocks for completed tasks
         } else if (progress >= 75) {
-            fillChar = "█"; // Solid for high progress
+            fillChar = "█"; // Solid for high progress (75%+)
         } else if (progress >= 50) {
-            fillChar = "▓"; // Medium density for medium progress
+            fillChar = "▓"; // Medium density for moderate progress (50-74%)
         } else if (progress >= 25) {
-            fillChar = "▒"; // Light density for low progress
+            fillChar = "▒"; // Light density for low progress (25-49%)
         } else if (progress > 0) {
-            fillChar = "░"; // Very light for very low progress
+            fillChar = "░"; // Very light for minimal progress (1-24%)
         }
         
         const filled = fillChar.repeat(filledLength);
@@ -223,7 +223,7 @@ export class ProgressionService {
     }
 
     /**
-     * Get all child task IDs that should be marked as done when parent is marked as done
+     * Get all child task IDs that need to be marked as done when parent task is completed
      */
     public static getChildrenToMarkAsDone(parentTaskId: string, allTasks: Task[]): string[] {
         return this.getAllDescendants(parentTaskId, allTasks)
@@ -232,7 +232,7 @@ export class ProgressionService {
     }
 
     /**
-     * Get all descendant tasks recursively (children, grandchildren, etc.)
+     * Recursively find all descendant tasks (children, grandchildren, etc.) of a given parent
      */
     private static getAllDescendants(parentTaskId: string, allTasks: Task[]): Task[] {
         const descendants: Task[] = [];
@@ -241,10 +241,10 @@ export class ProgressionService {
         const directChildren = allTasks.filter(task => task.parentId === parentTaskId);
         
         for (const child of directChildren) {
-            // Add the child
+            // Add the child to descendants list
             descendants.push(child);
             
-            // Recursively get all descendants of this child
+            // Recursively find all descendants of this child task
             const childDescendants = this.getAllDescendants(child.id, allTasks);
             descendants.push(...childDescendants);
         }
@@ -253,19 +253,19 @@ export class ProgressionService {
     }
 
     /**
-     * Mark a task and all its children as done
-     * Returns array of task IDs that were marked as done
+     * Mark a parent task and all its children as completed
+     * Returns an array of task IDs that were successfully marked as done
      */
     public static markTaskAndChildrenAsDone(parentTaskId: string, allTasks: Task[]): string[] {
         const tasksToUpdate: string[] = [];
         
-        // Add the parent task itself
+        // Include the parent task itself if it's eligible for completion
         const parentTask = allTasks.find(task => task.id === parentTaskId);
         if (parentTask && parentTask.status !== "done" && parentTask.status !== "closed") {
             tasksToUpdate.push(parentTaskId);
         }
         
-        // Get all children that should be marked as done
+        // Find all child tasks that should be marked as completed
         const childrenToUpdate = this.getChildrenToMarkAsDone(parentTaskId, allTasks);
         tasksToUpdate.push(...childrenToUpdate);
         
